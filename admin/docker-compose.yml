@@ -8,6 +8,11 @@ services:
             - .:/app
         depends_on:
             - db
+    queue:
+        build: .
+        command: 'python consumer.py'
+        depends_on:
+            - db
     db:
         image: mysql:5.7.22
         restart: unless-stopped
