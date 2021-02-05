@@ -1,8 +1,13 @@
 import os
+import django
+import json
 import pika
 from dotenv import load_dotenv
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'admin.settings')
+django.setup()
 load_dotenv()
+
 
 params = pika.URLParameters(os.environ.get('RABBITMQ_SERVER_URI'))
 connection = pika.BlockingConnection(params)
@@ -12,8 +17,15 @@ channel.queue_declare(queue='admin')
 
 
 def callback(ch, method, properties, body):
+    from products.models import Product
     print('Received in admin')
-    print(body)
+    id = json.loads(body)
+    print(id)
+
+    product = Product.objects.get(id=id)
+    product.likes += 1
+    product.save()
+    print('Product likes increased')
 
 
 channel.basic_consume(
